@@ -1,0 +1,8 @@
+version: "2.1"
+
+services:
+  kuristin:
+    image: mattipaksula/hyper-func-kuristin
+    build: .
+    environment:
+      - KURISTIN_VERSION=1
