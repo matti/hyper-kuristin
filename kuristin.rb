@@ -38,6 +38,8 @@ error "Pull failed" unless pull_k.code == 0
 
 kuristin_version = 0
 while true do
+  calls_failed = 0
+
   cleanup_started_at = Time.now
   cleanup
   cleanup_finished_at = Time.now
@@ -56,27 +58,17 @@ while true do
     error "func create failed: #{k.out}"
   end
 
-  curl_k = Kommando.run "curl -v #{url}", @opts_silent
-  call_completed_at = Time.now
+  while true do
+    curl_k = Kommando.run "curl -v #{url}", @opts_silent
+    call_completed_at = Time.now
 
-  unless curl_k.code == 0
-    puts "func call failed code: #{curl_k.code}, out: #{curl_k.out} - trying again in 3s to see what's up..."
-    sleep 3
-    curl_k = Kommando.run "curl -v #{url}", @opts
-    if curl_k.code == 0
-      puts "now it worked"
+    unless curl_k.code == 0
+      debug "func call failed code: #{curl_k.code}, out: #{curl_k.out} - trying again in 1s to see what's up..."
+      calls_failed = calls_failed + 1
+      sleep 1
     else
-      puts "nope, still doesn't work, let's see after 10s..."
-      sleep 10
-      curl_k = Kommando.run "curl -v #{url}", @opts
-      if curl_k.code == 0
-        puts "now it worked"
-      else
-        puts "nope, still doesn't work"
-      end
+      break
     end
-
-    error "func call failed, can't continue"
   end
 
   if curl_k.out.match "KURISTIN_VERSION: #{kuristin_version}"
@@ -85,7 +77,7 @@ while true do
     error "output does not match expected: #{curl_k.out}"
   end
 
-  puts "#{Time.now} - Total time: #{Time.now-started_at}, func create took: #{func_created_at - started_at}, Call took: #{call_completed_at-func_created_at} (cleanup: #{cleanup_finished_at-cleanup_started_at})"
+  puts "#{Time.now} - Total time: #{Time.now-started_at}, func create took: #{func_created_at - started_at}, Call took: #{call_completed_at-func_created_at} - Number of calls needed: #{calls_failed} (cleanup: #{cleanup_finished_at-cleanup_started_at})"
 
   kuristin_version = kuristin_version + 1
 end
