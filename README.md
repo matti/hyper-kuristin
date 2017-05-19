@@ -2,6 +2,8 @@
 
 (kuristin is throttle in finnish)
 
+hyper.sh func testing
+
 ```
 $ ruby kuristin.rb
 2017-05-19 13:49:48 +0300 - Total time: 10.618161, func create took: 0.974126, Call took: 9.643955 (cleanup: 1.566018)
