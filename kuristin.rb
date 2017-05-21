@@ -2,12 +2,19 @@ require 'kommando'
 
 @opts = {
   output: true,
-  timeout: 10
+  timeout: 60
 }
 
 @opts_silent = @opts.merge({
   output: false
 })
+
+Kommando.when :timeout do |k|
+    puts "TIMED OUT!"
+    puts k.out
+    exit 1
+end
+
 
 def debug msg
   return unless ENV['KURISTIN_DEBUG']
