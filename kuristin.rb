@@ -16,7 +16,9 @@ Kommando.when :timeout do |k|
 end
 
 
+@debug_output = File.open "debug.txt", "a"
 def debug msg
+  @debug_output.puts "#{msg}"
   return unless ENV['KURISTIN_DEBUG']
   puts "DEBUG>> #{msg}"
 end
@@ -46,6 +48,7 @@ error "Pull failed" unless pull_k.code == 0
 kuristin_version = 0
 while true do
   calls_failed = 0
+  output_good = true
 
   cleanup_started_at = Time.now
   cleanup
@@ -65,6 +68,7 @@ while true do
     error "func create failed: #{k.out}"
   end
 
+
   while true do
     curl_k = Kommando.run "curl -v #{url}", @opts_silent
     call_completed_at = Time.now
@@ -81,10 +85,11 @@ while true do
   if curl_k.out.match "KURISTIN_VERSION: #{kuristin_version}"
     debug curl_k.out
   else
-    error "output does not match expected: #{curl_k.out}"
+    debug "output does not match expected: #{curl_k.out}"
+    output_good = false
   end
 
-  puts "#{Time.now} - Total time: #{Time.now-started_at}, func create took: #{func_created_at - started_at}, Call took: #{call_completed_at-func_created_at} - Number of calls needed: #{calls_failed} (cleanup: #{cleanup_finished_at-cleanup_started_at})"
+  puts "#{Time.now} - Total time: #{Time.now-started_at}, func create took: #{func_created_at - started_at}, Call took: #{call_completed_at-func_created_at} - Number of calls needed: #{calls_failed} - Got output: #{output_good} (cleanup: #{cleanup_finished_at-cleanup_started_at})"
 
   kuristin_version = kuristin_version + 1
 end
